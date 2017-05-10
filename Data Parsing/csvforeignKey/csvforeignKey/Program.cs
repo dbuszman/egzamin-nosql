@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Globalization;
+using System.IO;
 using System.Text;
 using Geolocation;
 
@@ -34,10 +35,10 @@ namespace csvforeignKey
                                 stopsRecord.id = long.Parse(lineItems[0]);
                                 break;
                             case 1:
-                                stopsRecord.lon = double.Parse(lineItems[1]);
+                                stopsRecord.lon = double.Parse(lineItems[1], CultureInfo.InvariantCulture);
                                 break;
                             case 2:
-                                stopsRecord.lat = double.Parse(lineItems[2]);
+                                stopsRecord.lat = double.Parse(lineItems[2], CultureInfo.InvariantCulture);
                                 break;
                             case 3:
                                 stopsRecord.name = lineItems[3];
@@ -72,6 +73,7 @@ namespace csvforeignKey
 
                 string currentLine;
 
+	            int id = 1;
                 while ((currentLine = cityReader.ReadLine()) != null)
                 {
                     var lineItems = currentLine.Split(';');
@@ -81,16 +83,17 @@ namespace csvforeignKey
                         switch (i)
                         {
                             case 0:
-                                cityRecord.Id = long.Parse(lineItems[0]);
+                                cityRecord.Id = id;
+		                        id += 1;
                                 break;
                             case 1:
-                                cityRecord.Miasto = lineItems[1];
+                                cityRecord.Miasto = lineItems[0];
                                 break;
                             case 2:
-                                cityRecord.Lon = double.Parse(lineItems[2]);
+                                cityRecord.Lon = double.Parse(lineItems[1], CultureInfo.InvariantCulture);
                                 break;
                             case 3:
-                                cityRecord.Lat = double.Parse(lineItems[3]);
+                                cityRecord.Lat = double.Parse(lineItems[2], CultureInfo.InvariantCulture);
                                 break;
                         }
                     }
