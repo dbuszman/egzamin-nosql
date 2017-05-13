@@ -1,0 +1,343 @@
+---
+title: "Technologie NoSQL"
+author: "Artur Koliński, Dariusz Buszman"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+### Przedstawienie projektu
+Projekt powstał w celu zobrazowania zależności pomiędzy ilością populacji w mieście a ilością różnych środków transportu. Pod uwagę wybraliśmy kilka kluczowych miast, są to kolejno : Gdańsk, Warszawa, Szczecin, Kraków.
+
+### Przykładowe rekordy danych (przed obróbką)
+<div class = "row">
+<div class = "col-md-6">
+
+```
+> db.stops.findOne()
+{
+        "_id" : ObjectId("591773abe72483b56bf4a763"),
+        "id" : 179870732,
+        "lon" : 20.9803952,
+        "lat" : 52.2751308,
+        "name" : "Marymont - Potok 03",
+        "type" : "tram_stop",
+        "kind" : "railway"
+}
+```
+
+|    Nazwa Pola      |Opis                  | 
+|--------------------|----------------------|
+|lon|Długość geograficzna przystanku|
+|lat|Szerokość geograficzna przystanku|
+|name|Skrócona nazwa przystanku|
+|type|//TODO|
+|kind|//TODO |
+|fkey|Klucz obcy z tabeli cities|
+</div>
+<div class = "col-md-6">
+
+```
+> db.cities.findOne()
+{
+        "_id" : ObjectId("5917739fe72483b56bf4a747"),
+        "Id" : 1,
+        "Miasto" : "Gdansk",
+        "Lon" : 18.617162,
+        "Lat" : 54.362722,
+        "Populacja" : 464
+}
+```
+|    Nazwa Pola      |         Opis         | 
+|--------------------|----------------------|
+|Miasto|Nazwa miasta|
+|Lon|Długość geograficzna miasta|
+|Lat|Szerokość geograficzna miasta|
+|Populacja|Liczba ludności w całym mieście (tysiące)|
+</div>
+</div>
+## Wstępna obróbka danych
+Korzystając z programu napisanego w C# oraz dzięki wykorzystaniu specjalnych bibliotek jesteśmy w stanie bardzo szybko przerobić dużą ilość danych. Obróbka polega na podpięciu odpowiedniego Foreign Key miasta dla każdego przystanku oraz utworzeniu nowego csv powiększonego o kolumnę fkey. 
+Dane po tak przeprowadzonej obróbce wyglądają następująco:
+```
+> db.stops.findOne()
+{
+        "_id" : ObjectId("591773abe72483b56bf4a763"),
+        "id" : 179870732,
+        "lon" : 20.9803952,
+        "lat" : 52.2751308,
+        "name" : "Marymont - Potok 03",
+        "type" : "tram_stop",
+        "kind" : "railway",
+        "fkey" : 2
+}
+```
+
+## Źródło danych
+//TODO
+
+## Parametry komputerów
+Badań dokonaliśmy na jednym komputerze. Róznice w sprzęcie są na tyle małe, że nie ma potrzeby porównywania czasu wykonania poszczególnych zapytań na obu komputerach.
+
+<div class = "row">
+<div class = "col-md-6">
+
+Komputer Artura
+
+|Nazwa|Wartość|
+|---|---|
+|System Operacyjny|Windows 10 x64|
+|Procesor|Intel Core i5-6600k|
+|Ilość rdzeni|4 Cores/8 Threads|
+|Pamięć|16gb ddr4|
+|Dysk|256 ssd|
+
+</div>
+<div class = "col-md-6">
+
+Komputer Darka  //TODO
+
+|Nazwa|Wartość|
+|---|---|
+|System Operacyjny|Windows 10 x64|
+|Procesor|Intel Core i5-6600k|
+|Ilość rdzeni|4 Cores/8 Threads|
+|Pamięć|16gb ddr4|
+|Dysk|256 ssd|
+
+</div>
+</div>
+
+## Złączenie kolekcji w jedną
+Aby złączyć dane z kolekcji cities i stops w jedną, wspólną kolekcję wynikową, wykonaliśmy agregację, która zapisała do kolekcji o nazwie temporary.
+
+## Agregacja
+Agregacja ta dzieli się na trzy etapy. Pierwszy etap, findData, dołącza dane z cities do kolekcji stops. W następnym etapie add2Fields użyty został addFields w celu dodania dwóch pól: miasto, populacja. Ostatni, save, zapisuje wynik poprzednich etapów do kolekcji o nazwie temporary.
+```
+findData =
+{
+  $lookup: {
+    from: "cities",
+    localField: "fkey",
+    foreignField: "Id",
+    as: "City"
+  }
+}
+
+add2Fields =
+{
+  $addFields: {
+    "miasto": "$City.Miasto",
+    "populacja": "$City.Populacja"
+  }
+}
+
+save =
+{
+  $out: "temporary"
+}
+
+db.stops.aggregate( [ findData, add2Fields, save ] )
+```
+### Wynik
+Dane po tak wykonanej agregacji wyglądają następująco
+```
+> db.temporary.count()
+64991
+> db.temporary.findOne()
+{
+        "_id" : ObjectId("591773abe72483b56bf4a750"),
+        "id" : 27308502,
+        "lon" : 16.9168807,
+        "lat" : 52.4639683,
+        "name" : "Os. Sobieskiego",
+        "type" : "tram_stop",
+        "kind" : "railway",
+        "fkey" : 9999,
+        "City" : [
+                {
+                        "_id" : ObjectId("59178a9fe72483b56bf5a5c0"),
+                        "Id" : 9999,
+                        "Miasto" : "Brak",
+                        "Lon" : 19.5,
+                        "Lat" : 50.05,
+                        "Populacja" : 1
+                }
+        ],
+        "miasto" : [
+                "Brak"
+        ],
+        "populacja" : [
+                1
+        ]
+}
+```
+###Czas pracy
+Komputer Artura: < 20s
+
+##Kolekcje w MongoDB
+Po wykonaniu powyższych czynności w naszej bazie danych znajdują się trzy kolekcje.
+<div class = "row">
+<div class = "col-md-6">
+
+<b>Kolekcja cities</b> (5 rekordów)
+```
+> db.cities.findOne()
+{
+        "_id" : ObjectId("5917739fe72483b56bf4a747"),
+        "Id" : 1,
+        "Miasto" : "Gdansk",
+        "Lon" : 18.617162,
+        "Lat" : 54.362722,
+        "Populacja" : 464
+}
+```
+|Kolekcja|Ilość rekordów|Nazwa Pliku|
+|---|---|---|
+|<b>stops</b> |64 991 |stops_small|
+|<b>stops</b> |-----//TODO----- |stops_big|
+```
+> db.stops.findOne()
+{
+        "_id" : ObjectId("591773abe72483b56bf4a763"),
+        "id" : 179870732,
+        "lon" : 20.9803952,
+        "lat" : 52.2751308,
+        "name" : "Marymont - Potok 03",
+        "type" : "tram_stop",
+        "kind" : "railway",
+        "fkey" : 2
+}
+```
+
+</div>
+<div class = "col-md-6">
+|Kolekcja|Ilość rekordów|
+|---|---|
+|<b>temporary</b> |64 991 |
+|<b>temporary</b> |-----//TODO----- |
+```
+> db.temporary.findOne()
+{
+        "_id" : ObjectId("591773abe72483b56bf4a750"),
+        "id" : 27308502,
+        "lon" : 16.9168807,
+        "lat" : 52.4639683,
+        "name" : "Os. Sobieskiego",
+        "type" : "tram_stop",
+        "kind" : "railway",
+        "fkey" : 9999,
+        "City" : [
+                {
+                        "_id" : ObjectId("59178a9fe72483b56bf5a5c0"),
+                        "Id" : 9999,
+                        "Miasto" : "Brak",
+                        "Lon" : 19.5,
+                        "Lat" : 50.05,
+                        "Populacja" : 1
+                }
+        ],
+        "miasto" : [
+                "Brak"
+        ],
+        "populacja" : [
+                1
+        ]
+}
+```
+
+</div>
+</div>
+
+##Tworzenie próbki danych
+Poniższe agregacje mają na celu utworzenie kolekcji, które przechowują po 2000 losowych przystanków.
+
+By wyłowić 2000 przystanków z kolekcji stops, musimy wylosować 2000 rekordów z pierwszej z kolekcji stops, a następnie dla każdego z nich wydobyć i zapisać odpowiedni miasto z kolekcji cities.
+
+Kolekcja temporary skraca ten proces, jako że wystarczy wylosować 2000 rekordów i już otrzymuje się wszystkie potrzebne dane.
+
+<div class = "row">
+<div class = "col-md-6">
+
+```
+mySample =
+{ "$sample" : { "size" : 2000 } }
+```
+
+<b>Kolekcja temporary</b>
+```
+smallTemp =
+{ "$out" : "smallTemp" }
+
+db.temporary.aggregate( [mySample, smallTemp] )
+```
+
+<b>Wynik</b>
+```
+> db.smallTemp.count()
+2000
+> db.smallTemp.findOne()
+{
+        "_id" : ObjectId("591773abe72483b56bf5919d"),
+        "id" : NumberLong("4286273872"),
+        "lon" : 19.9606441,
+        "lat" : 50.1310219,
+        "name" : "Na Czekaj",
+        "type" : "bus_stop",
+        "kind" : "highway",
+        "fkey" : 4,
+        "City" : [
+                {
+                        "_id" : ObjectId("59178a9fe72483b56bf5a5bf"),
+                        "Id" : 4,
+                        "Miasto" : "Krakow",
+                        "Lon" : 19.958868,
+                        "Lat" : 50.058229,
+                        "Populacja" : 765
+                }
+        ],
+        "miasto" : [
+                "Krakow"
+        ],
+        "populacja" : [
+                765
+        ]
+}
+```
+
+</div>
+</div>
+###Czas tworzenia próbek
+Komputer Artura: < 4s
+
+##Agregacje
+//TODO
+
+Wszystkie podane czasy są uśrednionym wynikiem na podstawie od trzech do pięciu prób.
+
+```
+matchCity =
+{ "$match" : { "miasto" : { "$ne" : "Brak" } } }
+
+group =
+{
+  "$group" : {
+    "miasto" : "$miasto",
+    "stopsCount" : { "$sum" : 1 }
+  }
+}
+
+sortByStops =
+{ "$sort" : { "stopsCount" : -1 } }
+
+limitStops =
+{ "$limit" : 10 }
+
+db.smallTemp.aggregate( [ matchCity, group, sortByStops, limitStops ] )
+```
+
+
+
