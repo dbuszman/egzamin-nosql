@@ -326,24 +326,131 @@ Wszystkie podane czasy są uśrednionym wynikiem na podstawie od trzech do pięc
 
 ```bash
 matchCity =
-{ "$match" : { "miasto" : { "$ne" : "Brak" } } }
+{ "$match" : { 
+    "miasto" : { "$ne" : "Brak" } 
+  } 
+}
 
 group =
 {
   "$group" : {
-    "miasto" : "$miasto",
-    "stopsCount" : { "$sum" : 1 }
+    _id : "$miasto" , count: { $sum: 1 }
   }
 }
 
 sortByStops =
-{ "$sort" : { "stopsCount" : -1 } }
+{ "$sort" : { "count" : -1 } }
 
 limitStops =
-{ "$limit" : 10 }
+{ "$limit" : 3 }
 
 db.smallTemp.aggregate( [ matchCity, group, sortByStops, limitStops ] )
 ```
 
+Wynikiem są 3 miasta z największą liczbą przystanków posortowane malejąco, nie bierzemy pod uwagę miasta "Brak".
+
+###Output
+```bash
+{ "_id" : [ "Warszawa" ], "count" : 241 }
+{ "_id" : [ "Gdansk" ], "count" : 143 }
+{ "_id" : [ "Krakow" ], "count" : 71 }
+{ "_id" : [ "Szczecin" ], "count" : 57 }
+```
+
+##Agregacja różnorodności komunikacji
+Następnie sprawdzamy ile dla każdego miasta jest przystanków różnego typu i zwracamy je w liście posortowanej po ilości danego przystanku.
+
+```bash
+matchCity =
+{ "$match" : { 
+    "miasto" : { "$ne" : "Brak" } 
+  } 
+}
+
+group2 =
+{
+  "$group" : {
+    _id : {miasto: "$miasto",type: "$type"}, 
+    count: { $sum: 1 }
+  }
+}
+
+sortByStops =
+{ "$sort" : { "count" : -1 } }
+
+db.smallTemp.aggregate( [ matchCity, group2, sortByStops] )
+```
+
+//TODO
+
+###Output
+```bash
+{ "_id" : { "miasto" : [ "Warszawa" ], "type" : "bus_stop" }, "count" : 230 }
+{ "_id" : { "miasto" : [ "Gdansk" ], "type" : "bus_stop" }, "count" : 138 }
+{ "_id" : { "miasto" : [ "Krakow" ], "type" : "bus_stop" }, "count" : 64 }
+{ "_id" : { "miasto" : [ "Szczecin" ], "type" : "bus_stop" }, "count" : 53 }
+{ "_id" : { "miasto" : [ "Warszawa" ], "type" : "tram_stop" }, "count" : 11 }
+{ "_id" : { "miasto" : [ "Krakow" ], "type" : "tram_stop" }, "count" : 7 }
+{ "_id" : { "miasto" : [ "Gdansk" ], "type" : "tram_stop" }, "count" : 5 }
+{ "_id" : { "miasto" : [ "Szczecin" ], "type" : "tram_stop" }, "count" : 4 }
+```
 
 
+##Agregacja przystanki/populacja
+//TODO
+
+```bash
+matchCity =
+{ "$match" : { 
+    "miasto" : { "$ne" : "Brak" } 
+  } 
+}
+
+group3 =
+{
+  "$group" : {
+    _id : {miasto: "$miasto",type: "$type",fkey: "$fkey" ,populacja:"$populacja"}, 
+    count: { $sum: 1 },
+  }
+}
+
+project =
+{
+        "$project": {
+            "count": 1,
+            "populacja2": {
+              $switch:{
+               branches: [
+                {case: {$eq: ["$fkey", 1]},then: "464"},
+                {case: {$eq: ["$fkey", 2]},then: 1754},
+                {case: {$eq: ["$fkey", 3]},then: 405},
+                {case: {$eq: ["$fkey", 4]},then: 765}
+               ],
+               default: 0
+              }
+            },
+            "ratio": { "$divide": ["$count", "$populacja"] },
+        }
+}
+
+sortByRatio =
+{ "$sort" : { "ratio" : -1 } }
+
+db.smallTemp.aggregate( [ matchCity, group3, project, sortByRatio] )
+```
+
+###Output
+```bash
+{ "_id" : { "miasto" : [ "Szczecin" ], "type" : "tram_stop", "fkey" : 3, "populacja" : [ 405 ] }, "count" : 4, "populacja2" : 0, "ratio" : null }
+{ "_id" : { "miasto" : [ "Krakow" ], "type" : "tram_stop", "fkey" : 4, "populacja" : [ 765 ] }, "count" : 7, "populacja2" : 0, "ratio" : null }
+{ "_id" : { "miasto" : [ "Warszawa" ], "type" : "tram_stop", "fkey" : 2, "populacja" : [ 1754 ] }, "count" : 11, "populacja2" : 0, "ratio" : null }
+{ "_id" : { "miasto" : [ "Gdansk" ], "type" : "bus_stop", "fkey" : 1, "populacja" : [ 464 ] }, "count" : 138, "populacja2" : 0, "ratio" : null }
+{ "_id" : { "miasto" : [ "Gdansk" ], "type" : "tram_stop", "fkey" : 1, "populacja" : [ 464 ] }, "count" : 5, "populacja2" : 0, "ratio" : null }
+{ "_id" : { "miasto" : [ "Warszawa" ], "type" : "bus_stop", "fkey" : 2, "populacja" : [ 1754 ] }, "count" : 230, "populacja2" : 0, "ratio" : null }
+{ "_id" : { "miasto" : [ "Szczecin" ], "type" : "bus_stop", "fkey" : 3, "populacja" : [ 405 ] }, "count" : 53, "populacja2" : 0, "ratio" : null }
+{ "_id" : { "miasto" : [ "Krakow" ], "type" : "bus_stop", "fkey" : 4, "populacja" : [ 765 ] }, "count" : 64, "populacja2" : 0, "ratio" : null }
+```
+
+
+##Podsumowanie
+//TODO
