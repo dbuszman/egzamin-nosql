@@ -16,7 +16,7 @@ Projekt powstał w celu zobrazowania zależności pomiędzy ilością populacji 
 <div class = "row">
 <div class = "col-md-6">
 
-```
+```bash
 > db.stops.findOne()
 {
         "_id" : ObjectId("591773abe72483b56bf4a763"),
@@ -34,13 +34,13 @@ Projekt powstał w celu zobrazowania zależności pomiędzy ilością populacji 
 |lon|Długość geograficzna przystanku|
 |lat|Szerokość geograficzna przystanku|
 |name|Skrócona nazwa przystanku|
-|type|//TODO|
-|kind|//TODO |
+|type|Klucze pochodzące z OSM|
+|kind|Wartości pochodzące z OSM|
 |fkey|Klucz obcy z tabeli cities|
 </div>
 <div class = "col-md-6">
 
-```
+```bash
 > db.cities.findOne()
 {
         "_id" : ObjectId("5917739fe72483b56bf4a747"),
@@ -62,7 +62,7 @@ Projekt powstał w celu zobrazowania zależności pomiędzy ilością populacji 
 ## Wstępna obróbka danych
 Korzystając z programu napisanego w C# oraz dzięki wykorzystaniu specjalnych bibliotek jesteśmy w stanie bardzo szybko przerobić dużą ilość danych. Obróbka polega na podpięciu odpowiedniego Foreign Key miasta dla każdego przystanku oraz utworzeniu nowego csv powiększonego o kolumnę fkey. 
 Dane po tak przeprowadzonej obróbce wyglądają następująco:
-```
+```bash
 > db.stops.findOne()
 {
         "_id" : ObjectId("591773abe72483b56bf4a763"),
@@ -77,7 +77,13 @@ Dane po tak przeprowadzonej obróbce wyglądają następująco:
 ```
 
 ## Źródło danych
-//TODO
+Dane z których korzystamy pochodzą z [OpenStreetMap](openstreetmap.org), ze zbioru wszystkich danych z Polski -> [Źródło](http://download.geofabrik.de/europe/poland-latest.osm.bz2).
+
+W celu ograniczenia danych ze względu na temat projektu wykorzystaliśmy narzędzie [Osmfilter](http://wiki.openstreetmap.org/wiki/Osmfilter) udostępniane przez OpenStreetMap.
+
+Otrzymane dane do pobrania znajdują się [->tutaj](https://1drv.ms/u/s!Ah-suCt39jqQ0s9D0aqPlX0xrQrJow)
+
+Następnie otrzymane dane zostały rozszerzone o informację o kluczu obcym z tabeli zawierającej największe miasta w Polsce. Rozszerzenie oraz przeparsowanie danych do formaty CSV zostało wykonane przy użyciu własnego programu napisanego w jezyku C#.
 
 ## Parametry komputerów
 Badań dokonaliśmy na jednym komputerze. Róznice w sprzęcie są na tyle małe, że nie ma potrzeby porównywania czasu wykonania poszczególnych zapytań na obu komputerach.
@@ -98,12 +104,12 @@ Komputer Artura
 </div>
 <div class = "col-md-6">
 
-Komputer Darka  //TODO
+Komputer Darka 
 
 |Nazwa|Wartość|
 |---|---|
 |System Operacyjny|Windows 10 x64|
-|Procesor|Intel Core i5-6600k|
+|Procesor|Intel Core i7-3632QM|
 |Ilość rdzeni|4 Cores/8 Threads|
 |Pamięć|16gb ddr4|
 |Dysk|256 ssd|
@@ -116,7 +122,7 @@ Aby złączyć dane z kolekcji cities i stops w jedną, wspólną kolekcję wyni
 
 ## Agregacja
 Agregacja ta dzieli się na trzy etapy. Pierwszy etap, findData, dołącza dane z cities do kolekcji stops. W następnym etapie add2Fields użyty został addFields w celu dodania dwóch pól: miasto, populacja. Ostatni, save, zapisuje wynik poprzednich etapów do kolekcji o nazwie temporary.
-```
+```bash
 findData =
 {
   $lookup: {
@@ -144,7 +150,7 @@ db.stops.aggregate( [ findData, add2Fields, save ] )
 ```
 ### Wynik
 Dane po tak wykonanej agregacji wyglądają następująco
-```
+```bash
 > db.temporary.count()
 64991
 > db.temporary.findOne()
@@ -184,7 +190,7 @@ Po wykonaniu powyższych czynności w naszej bazie danych znajdują się trzy ko
 <div class = "col-md-6">
 
 <b>Kolekcja cities</b> (5 rekordów)
-```
+```bash
 > db.cities.findOne()
 {
         "_id" : ObjectId("5917739fe72483b56bf4a747"),
@@ -198,8 +204,8 @@ Po wykonaniu powyższych czynności w naszej bazie danych znajdują się trzy ko
 |Kolekcja|Ilość rekordów|Nazwa Pliku|
 |---|---|---|
 |<b>stops</b> |64 991 |stops_small|
-|<b>stops</b> |-----//TODO----- |stops_big|
-```
+|<b>stops</b> |2 921 931 |stops_big|
+```bash
 > db.stops.findOne()
 {
         "_id" : ObjectId("591773abe72483b56bf4a763"),
@@ -218,8 +224,8 @@ Po wykonaniu powyższych czynności w naszej bazie danych znajdują się trzy ko
 |Kolekcja|Ilość rekordów|
 |---|---|
 |<b>temporary</b> |64 991 |
-|<b>temporary</b> |-----//TODO----- |
-```
+|<b>temporary</b> |2 921 931 |
+```bash
 > db.temporary.findOne()
 {
         "_id" : ObjectId("591773abe72483b56bf4a750"),
@@ -262,13 +268,13 @@ Kolekcja temporary skraca ten proces, jako że wystarczy wylosować 2000 rekord�
 <div class = "row">
 <div class = "col-md-6">
 
-```
+```bash
 mySample =
 { "$sample" : { "size" : 2000 } }
 ```
 
 <b>Kolekcja temporary</b>
-```
+```bash
 smallTemp =
 { "$out" : "smallTemp" }
 
@@ -276,7 +282,7 @@ db.temporary.aggregate( [mySample, smallTemp] )
 ```
 
 <b>Wynik</b>
-```
+```bash
 > db.smallTemp.count()
 2000
 > db.smallTemp.findOne()
@@ -318,7 +324,7 @@ Komputer Artura: < 4s
 
 Wszystkie podane czasy są uśrednionym wynikiem na podstawie od trzech do pięciu prób.
 
-```
+```bash
 matchCity =
 { "$match" : { "miasto" : { "$ne" : "Brak" } } }
 
