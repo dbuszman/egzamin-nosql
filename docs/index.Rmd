@@ -360,7 +360,7 @@ Czas wykonania < 10s
 //TODO interpretacja wyniku
 
 ##Agregacja
-Następnie sprawdzamy ile dla każdego miasta jest punktów różnego typu i zwracamy je w liście posortowanej po ilości danego typu.
+Następnie sprawdzamy ile dla każdego miasta jest punktów różnego typu związanych z transportem i zwracamy je w liście posortowanej po ilości danego typu.
 
 ```bash
 matchCity =
@@ -402,10 +402,10 @@ Czas wykonania < 10s
 { "_id" : { "miasto" : [ "Krakow" ], "type" : "bus_stop" }, "count" : 2506 }
 { "_id" : { "miasto" : [ "Szczecin" ], "type" : "bus_stop" }, "count" : 1447 }
 ```
-//TODO interpretacja wyniku
+Jak widać największą liczebność wsród punktów związanych z transportem stanowią ścieżki dla pieszych oraz parkingi. Wsród komunikacji miejskiej zdecydowanie najliczniejsza jest komunikacja autobusowa. Wyniki te są odzwierciedleniem kosztowności inwestycji w zakresie transportu.
 
 ##Agregacja 
-//TODO opis agregacji, grupujemy parkingi, terminale, taxi i inne rzeczy 
+Grupujemy punkty związane z transportem dla naszych miast i obliczamy proporcję pomiędzy liczebnością występowania danego punktu a populacją danego miasta.
 
 ```bash
 matchCity =
@@ -479,7 +479,7 @@ Czas wykonania < 10s
 { "_id" : { "miasto" : [ "Krakow" ], "type" : "taxi", "fkey" : 4, "populacja" : [ 765 ] }, "count" : 63, "populacja2" : 765, "ratio" : 0.082353 }
 { "_id" : { "miasto" : [ "Krakow" ], "type" : "terminal", "fkey" : 4, "populacja" : [ 765 ] }, "count" : 50, "populacja2" : 765, "ratio" : 0.065359 }
 ```
-//TODO interpretacja wyniku
+
 
 ##Podsumowanie
 //TODO ładne podsumowanie i rozeznanie w całości
