@@ -333,7 +333,6 @@ add2Fields =
   }
 }
 
-db.stops.aggregate( [ findData, add2Fields, save ] )
 save =
 {
   $out: &quot;temporary&quot;
@@ -375,7 +374,7 @@ db.stops.aggregate( [ findData, add2Fields, save ] )</code></pre>
 </div>
 <div id="czas-pracy" class="section level3">
 <h3>Czas pracy</h3>
-<p>Komputer Artura: &lt; 20s</p>
+<p>Komputer Artura: ~ 8s (małe dane) Komputer Artura: ~ 1min 45s (duże dane)</p>
 </div>
 </div>
 <div id="kolekcje-w-mongodb" class="section level2">
@@ -549,14 +548,15 @@ sortByStops =
 limitStops =
 { &quot;$limit&quot; : 3 }
 
-db.smallTemp.aggregate( [ matchCity, group, sortByStops, limitStops ] )</code></pre>
+db.smallTemp.aggregate( [ matchCity, group, sortByStops, limitStops ] )
+db.temporaty.aggregate( [ matchCity, group, sortByStops, limitStops ] )</code></pre>
 <p>Wynikiem są 3 miasta z największą liczbą przystanków posortowane malejąco, nie bierzemy pod uwagę miasta “Brak”.</p>
+<p>Czas wykonania &lt; 10s</p>
 <div id="output" class="section level3">
 <h3>Output</h3>
-<pre class="bash"><code>{ &quot;_id&quot; : [ &quot;Warszawa&quot; ], &quot;count&quot; : 241 }
-{ &quot;_id&quot; : [ &quot;Gdansk&quot; ], &quot;count&quot; : 143 }
-{ &quot;_id&quot; : [ &quot;Krakow&quot; ], &quot;count&quot; : 71 }
-{ &quot;_id&quot; : [ &quot;Szczecin&quot; ], &quot;count&quot; : 57 }</code></pre>
+<pre class="bash"><code>{ &quot;_id&quot; : [ &quot;Warszawa&quot; ], &quot;count&quot; : 252798 }
+{ &quot;_id&quot; : [ &quot;Krakow&quot; ], &quot;count&quot; : 123227 }
+{ &quot;_id&quot; : [ &quot;Gdansk&quot; ], &quot;count&quot; : 112632 }</code></pre>
 </div>
 </div>
 <div id="agregacja-roznorodnosci-komunikacji" class="section level2">
@@ -579,22 +579,29 @@ group2 =
 sortByStops =
 { &quot;$sort&quot; : { &quot;count&quot; : -1 } }
 
-db.smallTemp.aggregate( [ matchCity, group2, sortByStops] )</code></pre>
-<p>//TODO</p>
+db.smallTemp.aggregate( [ matchCity, group2, sortByStops] )
+db.temporary.aggregate( [ matchCity, group2, sortByStops] )</code></pre>
+<p>Czas wykonania &lt; 10s</p>
 <div id="output-1" class="section level3">
 <h3>Output</h3>
-<pre class="bash"><code>{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Warszawa&quot; ], &quot;type&quot; : &quot;bus_stop&quot; }, &quot;count&quot; : 230 }
-{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Gdansk&quot; ], &quot;type&quot; : &quot;bus_stop&quot; }, &quot;count&quot; : 138 }
-{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Krakow&quot; ], &quot;type&quot; : &quot;bus_stop&quot; }, &quot;count&quot; : 64 }
-{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Szczecin&quot; ], &quot;type&quot; : &quot;bus_stop&quot; }, &quot;count&quot; : 53 }
-{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Warszawa&quot; ], &quot;type&quot; : &quot;tram_stop&quot; }, &quot;count&quot; : 11 }
-{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Krakow&quot; ], &quot;type&quot; : &quot;tram_stop&quot; }, &quot;count&quot; : 7 }
-{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Gdansk&quot; ], &quot;type&quot; : &quot;tram_stop&quot; }, &quot;count&quot; : 5 }
-{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Szczecin&quot; ], &quot;type&quot; : &quot;tram_stop&quot; }, &quot;count&quot; : 4 }</code></pre>
+<pre class="bash"><code>{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Warszawa&quot; ], &quot;type&quot; : &quot;footway&quot; }, &quot;count&quot; : 188368 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Krakow&quot; ], &quot;type&quot; : &quot;footway&quot; }, &quot;count&quot; : 91722 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Gdansk&quot; ], &quot;type&quot; : &quot;footway&quot; }, &quot;count&quot; : 85344 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Warszawa&quot; ], &quot;type&quot; : &quot;parking&quot; }, &quot;count&quot; : 48255 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Szczecin&quot; ], &quot;type&quot; : &quot;footway&quot; }, &quot;count&quot; : 46142 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Krakow&quot; ], &quot;type&quot; : &quot;parking&quot; }, &quot;count&quot; : 22571 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Gdansk&quot; ], &quot;type&quot; : &quot;parking&quot; }, &quot;count&quot; : 17974 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Szczecin&quot; ], &quot;type&quot; : &quot;parking&quot; }, &quot;count&quot; : 13223 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Warszawa&quot; ], &quot;type&quot; : &quot;bus_stop&quot; }, &quot;count&quot; : 6013 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Gdansk&quot; ], &quot;type&quot; : &quot;bus_stop&quot; }, &quot;count&quot; : 4935 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Krakow&quot; ], &quot;type&quot; : &quot;bus_stop&quot; }, &quot;count&quot; : 2506 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Szczecin&quot; ], &quot;type&quot; : &quot;bus_stop&quot; }, &quot;count&quot; : 1447 }</code></pre>
+<p>//TODO interpretacja wyniku</p>
 </div>
 </div>
-<div id="agregacja-przystankipopulacja" class="section level2">
-<h2>Agregacja przystanki/populacja</h2>
+<div id="agregacja-1" class="section level2">
+<h2>Agregacja</h2>
+<p>//TODO opis agregacji, grupujemy parkingi, terminale, taxi i inne rzeczy</p>
 <pre class="bash"><code>matchCity =
 { &quot;$match&quot; : { 
     &quot;miasto&quot; : { &quot;$ne&quot; : &quot;Brak&quot; } 
@@ -604,7 +611,12 @@ db.smallTemp.aggregate( [ matchCity, group2, sortByStops] )</code></pre>
 group3 =
 {
   &quot;$group&quot; : {
-    _id : {miasto: &quot;$miasto&quot;,type: &quot;$type&quot;, populacja:&quot;$populacja&quot;}, 
+    _id : {
+      miasto: &quot;$miasto&quot;,
+      type: &quot;$type&quot;,
+      fkey: &quot;$fkey&quot; ,
+      populacja:&quot;$populacja&quot;
+    }, 
     count: { $sum: 1 },
   }
 }
@@ -612,42 +624,56 @@ group3 =
 project =
 {
         &quot;$project&quot;: {
-            &quot;miasto&quot;: 1,
             &quot;count&quot;: 1,
-            &quot;type&quot;: 1,
-            &quot;populacja&quot;: 1,
-            &quot;sprMiasto&quot;: {
+            &quot;populacja2&quot;: {
               $switch:{
-               fkey: [
-                {&quot;case&quot;: {$eg: [1]},then: 500}
-               ]
+               branches: [
+                {case: {$eq: [&quot;$fkey&quot;, 1]},then: 464},
+                {case: {$eq: [&quot;$fkey&quot;, 2]},then: 1754},
+                {case: {$eq: [&quot;$fkey&quot;, 3]},then: 405},
+                {case: {$eq: [&quot;$fkey&quot;, 4]},then: 765}
+               ],
+               default: 0
               }
             },
-            &quot;ratio&quot;: { &quot;$divide&quot;: [&quot;$count&quot;, &quot;$populacja&quot;] },
+            &quot;ratio&quot;: { &quot;$divide&quot;: [&quot;$count&quot;, &quot;$populacja2&quot;] },
         }
 }
 
 sortByRatio =
 { &quot;$sort&quot; : { &quot;ratio&quot; : -1 } }
 
-db.smallTemp.aggregate( [ matchCity, group3, project, sortByRatio] )</code></pre>
+db.smallTemp.aggregate( [ matchCity, group3, project, sortByRatio] )
+db.temporary.aggregate( [ matchCity, group3, project, sortByRatio] )</code></pre>
+<p>Czas wykonania &lt; 10s</p>
 <div id="output-2" class="section level3">
 <h3>Output</h3>
-<pre class="bash"><code>{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Krakow&quot; ], &quot;type&quot; : &quot;tram_stop&quot;, &quot;populacja&quot; : [ 765 ] }, &quot;count&quot; : 7, &quot;ratio&quot; : null }
-{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Warszawa&quot; ], &quot;type&quot; : &quot;tram_stop&quot;, &quot;populacja&quot; : [ 1754 ] }, &quot;count&quot; : 11, &quot;ratio&quot; : null }
-
-{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Gdansk&quot; ], &quot;type&quot; : &quot;bus_stop&quot;, &quot;populacja&quot; : [ 464 ] }, &quot;count&quot; : 138, &quot;ratio&quot; : null }
-{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Szczecin&quot; ], &quot;type&quot; : &quot;bus_stop&quot;, &quot;populacja&quot; : [ 405 ] }, &quot;count&quot; : 53, &quot;ratio&quot; : null }
-{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Warszawa&quot; ], &quot;type&quot; : &quot;bus_stop&quot;, &quot;populacja&quot; : [ 1754 ] }, &quot;count&quot; : 230, &quot;ratio&quot; : null }
-
-{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Szczecin&quot; ], &quot;type&quot; : &quot;tram_stop&quot;, &quot;populacja&quot; : [ 405 ] }, &quot;count&quot; : 4, &quot;ratio&quot; : null }
-{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Gdansk&quot; ], &quot;type&quot; : &quot;tram_stop&quot;, &quot;populacja&quot; : [ 464 ] }, &quot;count&quot; : 5, &quot;ratio&quot; : null }
-{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Krakow&quot; ], &quot;type&quot; : &quot;bus_stop&quot;, &quot;populacja&quot; : [ 765 ] }, &quot;count&quot; : 64, &quot;ratio&quot; : null }</code></pre>
+<pre class="bash"><code>{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Gdansk&quot; ], &quot;type&quot; : &quot;parking&quot;, &quot;fkey&quot; : 1, &quot;populacja&quot; : [ 464 ] }, &quot;count&quot; : 17974, &quot;populacja2&quot; : 464, &quot;ratio&quot; : 38.73707 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Warszawa&quot; ], &quot;type&quot; : &quot;parking&quot;, &quot;fkey&quot; : 2, &quot;populacja&quot; : [ 1754 ] }, &quot;count&quot; : 48255, &quot;populacja2&quot; : 1754, &quot;ratio&quot; : 27.5114 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Gdansk&quot; ], &quot;type&quot; : &quot;bus_stop&quot;, &quot;fkey&quot; : 1, &quot;populacja&quot; : [ 464 ] }, &quot;count&quot; : 4935, &quot;populacja2&quot; : 464, &quot;ratio&quot; : 10.635775 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Szczecin&quot; ], &quot;type&quot; : &quot;bus_stop&quot;, &quot;fkey&quot; : 3, &quot;populacja&quot; : [ 405 ] }, &quot;count&quot; : 1447, &quot;populacja2&quot; : 405, &quot;ratio&quot; : 3.572839 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Warszawa&quot; ], &quot;type&quot; : &quot;bus_stop&quot;, &quot;fkey&quot; : 2, &quot;populacja&quot; : [ 1754 ] }, &quot;count&quot; : 6013, &quot;populacja2&quot; : 1754, &quot;ratio&quot; : 3.428164 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Krakow&quot; ], &quot;type&quot; : &quot;bus_stop&quot;, &quot;fkey&quot; : 4, &quot;populacja&quot; : [ 765 ] }, &quot;count&quot; : 2506, &quot;populacja2&quot; : 765, &quot;ratio&quot; : 3.275816 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Gdansk&quot; ], &quot;type&quot; : &quot;fuel&quot;, &quot;fkey&quot; : 1, &quot;populacja&quot; : [ 464 ] }, &quot;count&quot; : 750, &quot;populacja2&quot; : 464, &quot;ratio&quot; : 1.616379 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Krakow&quot; ], &quot;type&quot; : &quot;bicycle_parking&quot;, &quot;fkey&quot; : 4, &quot;populacja&quot; : [ 765 ] }, &quot;count&quot; : 1229, &quot;populacja2&quot; : 765, &quot;ratio&quot; : 1.606536 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Szczecin&quot; ], &quot;type&quot; : &quot;fuel&quot;, &quot;fkey&quot; : 3, &quot;populacja&quot; : [ 405 ] }, &quot;count&quot; : 385, &quot;populacja2&quot; : 405, &quot;ratio&quot; : 0.950617 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Warszawa&quot; ], &quot;type&quot; : &quot;fuel&quot;, &quot;fkey&quot; : 2, &quot;populacja&quot; : [ 1754 ] }, &quot;count&quot; : 1349, &quot;populacja2&quot; : 1754, &quot;ratio&quot; : 0.767959 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Gdansk&quot; ], &quot;type&quot; : &quot;car_wash&quot;, &quot;fkey&quot; : 1, &quot;populacja&quot; : [ 464 ] }, &quot;count&quot; : 332, &quot;populacja2&quot; : 464, &quot;ratio&quot; : 0.715517 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Gdansk&quot; ], &quot;type&quot; : &quot;bicycle_parking&quot;, &quot;fkey&quot; : 1, &quot;populacja&quot; : [ 464 ] }, &quot;count&quot; : 313, &quot;populacja2&quot; : 464, &quot;ratio&quot; : 0.674569 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Szczecin&quot; ], &quot;type&quot; : &quot;car_wash&quot;, &quot;fkey&quot; : 3, &quot;populacja&quot; : [ 405 ] }, &quot;count&quot; : 246, &quot;populacja2&quot; : 405, &quot;ratio&quot; : 0.607407 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Warszawa&quot; ], &quot;type&quot; : &quot;bicycle_parking&quot;, &quot;fkey&quot; : 2, &quot;populacja&quot; : [ 1754 ] }, &quot;count&quot; : 692, &quot;populacja2&quot; : 1754, &quot;ratio&quot; : 0.394527 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Gdansk&quot; ], &quot;type&quot; : &quot;taxi&quot;, &quot;fkey&quot; : 1, &quot;populacja&quot; : [ 464 ] }, &quot;count&quot; : 117, &quot;populacja2&quot; : 464, &quot;ratio&quot; : 0.252155 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Warszawa&quot; ], &quot;type&quot; : &quot;terminal&quot;, &quot;fkey&quot; : 2, &quot;populacja&quot; : [ 1754 ] }, &quot;count&quot; : 268, &quot;populacja2&quot; : 1754, &quot;ratio&quot; : 0.152794 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Gdansk&quot; ], &quot;type&quot; : &quot;ferry_terminal&quot;, &quot;fkey&quot; : 1, &quot;populacja&quot; : [ 464 ] }, &quot;count&quot; : 67, &quot;populacja2&quot; : 464, &quot;ratio&quot; : 0.1444397 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Szczecin&quot; ], &quot;type&quot; : &quot;terminal&quot;, &quot;fkey&quot; : 3, &quot;populacja&quot; : [ 405 ] }, &quot;count&quot; : 52, &quot;populacja2&quot; : 405, &quot;ratio&quot; : 0.128395 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Krakow&quot; ], &quot;type&quot; : &quot;taxi&quot;, &quot;fkey&quot; : 4, &quot;populacja&quot; : [ 765 ] }, &quot;count&quot; : 63, &quot;populacja2&quot; : 765, &quot;ratio&quot; : 0.082353 }
+{ &quot;_id&quot; : { &quot;miasto&quot; : [ &quot;Krakow&quot; ], &quot;type&quot; : &quot;terminal&quot;, &quot;fkey&quot; : 4, &quot;populacja&quot; : [ 765 ] }, &quot;count&quot; : 50, &quot;populacja2&quot; : 765, &quot;ratio&quot; : 0.065359 }</code></pre>
+<p>//TODO interpretacja wyniku</p>
 </div>
 </div>
 <div id="podsumowanie" class="section level2">
 <h2>Podsumowanie</h2>
-<p>//TODO</p>
+<p>//TODO ładne podsumowanie i rozeznanie w całości</p>
 </div>
 
 
