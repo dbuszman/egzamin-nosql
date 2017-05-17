@@ -357,7 +357,6 @@ Czas wykonania < 10s
 { "_id" : [ "Krakow" ], "count" : 123227 }
 { "_id" : [ "Gdansk" ], "count" : 112632 }
 ```
-//TODO interpretacja wyniku
 
 ##Agregacja
 Następnie sprawdzamy ile dla każdego miasta jest punktów różnego typu związanych z transportem i zwracamy je w liście posortowanej po ilości danego typu.
@@ -480,6 +479,5 @@ Czas wykonania < 10s
 { "_id" : { "miasto" : [ "Krakow" ], "type" : "terminal", "fkey" : 4, "populacja" : [ 765 ] }, "count" : 50, "populacja2" : 765, "ratio" : 0.065359 }
 ```
 
-
 ##Podsumowanie
-//TODO ładne podsumowanie i rozeznanie w całości
+MongoDB jest bardzo ciekawe a różnorodność zadań jakie można nim wykonać zdaje się nie mieć ograniczeń. Czasy zapytań są bardzo krótkie pomimo operacji na bardzo dużych danych. Bardzo duża liczba wbudowanych funkcji umożliwia szybką realizację zapytań bez pisania własnych funkcji ale utrudnia naukę.
